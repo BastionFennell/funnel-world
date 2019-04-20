@@ -1,13 +1,13 @@
 <template>
   <div>
-    <div>
-      {{ currentName }}
+    <div v-if="loading">
+      Generating...
     </div>
-    <button v-on:click="calculateRandomName">
-      random name
-    </button>
-    <button v-on:click="changeGender">
-      change gender
+    <div v-else>
+      {{name}}, a {{gender}} {{race}}
+    </div>
+    <button v-on:click="generateCharacter">
+      Generate
     </button>
     <hr />
     <div v-for="item in names" v-bind:key="item.name">
@@ -20,6 +20,7 @@
 import { Component, Vue } from "vue-property-decorator";
 import { NAMES_QUERY } from "./graphql";
 import { NameType } from "./types";
+import { pickRandom } from "./utils";
 
 @Component({
   components: {
@@ -30,7 +31,8 @@ import { NameType } from "./types";
       query: NAMES_QUERY,
       variables() {
         return {
-          gender: this.gender
+          gender: this.gender,
+          race: this.race
         };
       }
     }
@@ -38,24 +40,29 @@ import { NameType } from "./types";
 })
 export default class NamesList extends Vue {
   gender = "male";
+  race = "human";
   loading = 0;
   names: Array<NameType> = [];
-  currentName = "";
 
-  calculateRandomName() {
+  get name() {
     if (this.loading) {
       return "";
     }
 
     const randomNumber = Math.floor(Math.random() * this.names.length);
 
-    this.currentName = this.names[randomNumber].name;
+    return this.names[randomNumber].name;
   }
 
   changeGender() {
     const newGender = this.gender === "male" ? "female" : "male";
 
     this.gender = newGender;
+  }
+
+  generateCharacter() {
+    this.gender = pickRandom(["male", "female"]);
+    this.race = pickRandom(["human", "dwarf", "elf", "halfling"]);
   }
 }
 </script>
